@@ -12,23 +12,34 @@ import (
 	"strings"
 )
 
-const prefix = "unpacked"
-
 func main() {
-	var mode, file string
+	var mode, file, imgInput, prefix string
 
-	flag.StringVar(&mode, "mode", "repack", "Work mode of ShinyRepacker")
-	flag.StringVar(&file, "file", "parts_text", "File name without extension")
+	flag.StringVar(&mode, "mode", "unpack", "Work mode, unpack or repack")
+	flag.StringVar(&file, "file", "", "Json file name without extension")
+	flag.StringVar(&imgInput, "image", "", "Image file name, used as input in unpack mode or as output in repack mode")
+	flag.StringVar(&prefix, "prefix", "unpacked", "Prefix path of exported files")
 	flag.Parse()
+
+	if file == "" {
+		log.Fatal("No file input provided")
+		return
+	}
 
 	desc := LoadDescribeFile(file)
 
 	switch mode {
 	case "unpack":
-		img := LoadImage(desc.Meta.Image)
+		if imgInput == "" {
+			imgInput = desc.Meta.Image
+		}
+
+		img := LoadImage(imgInput)
 
 		for name, frame := range desc.Frames {
-			name = prefix + "/" + name
+			if prefix != "" {
+				name = prefix + "/" + name
+			}
 			f := frame.Frame
 
 			// rotate: true means the width and height are exchanged
@@ -37,7 +48,6 @@ func main() {
 			}
 
 			recRect := image.Rect(0, 0, f.Width, f.Height)
-
 			rec := image.NewNRGBA(recRect)
 			draw.Draw(rec, recRect, img, image.Point{X: f.X, Y: f.Y}, draw.Over)
 
@@ -76,12 +86,12 @@ func main() {
 		result := image.NewNRGBA(image.Rect(0, 0, desc.Meta.Size.Width, desc.Meta.Size.Height))
 
 		for name, frame := range desc.Frames {
-			name = prefix + "/" + name
+			if prefix != "" {
+				name = prefix + "/" + name
+			}
+
 			img := LoadImage(name)
-
 			f := frame.Frame
-
-			// rotate: true means the width and height are exchanged
 
 			if frame.Trimmed {
 				// Trim before rotate
@@ -99,9 +109,7 @@ func main() {
 					}
 				}
 				img = rot
-			}
 
-			if frame.Rotated {
 				f.Width, f.Height = f.Height, f.Width
 			}
 
@@ -114,7 +122,16 @@ func main() {
 			)
 		}
 
-		SaveFile(file+".repack.png", result)
+		// Save file
+		var fileName string
+		if imgInput == "" {
+			fileName = file + ".repack.png"
+		} else {
+			fileName = imgInput
+		}
+		SaveFile(fileName, result)
+	default:
+		flag.Usage()
 	}
 }
 
