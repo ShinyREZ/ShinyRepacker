@@ -70,8 +70,8 @@ func main() {
 					image.Rect(
 						frame.SpriteSourceSize.X,
 						frame.SpriteSourceSize.Y,
-						frame.SourceSize.Width,
-						frame.SourceSize.Height,
+						frame.SpriteSourceSize.X+frame.SpriteSourceSize.Width,
+						frame.SpriteSourceSize.Y+frame.SpriteSourceSize.Height,
 					),
 					rec, image.Point{}, draw.Over,
 				)
@@ -91,33 +91,33 @@ func main() {
 
 			img := LoadImage(name)
 			f := frame.Frame
+			fr := frame.SpriteSourceSize
 
 			if frame.Trimmed {
 				// Trim before rotate
 				triRect := image.Rect(0, 0, f.Width, f.Height)
 				tri := image.NewNRGBA(triRect)
-				draw.Draw(tri, triRect, img, image.Point{X: frame.SpriteSourceSize.X, Y: frame.SpriteSourceSize.Y}, draw.Over)
+				draw.Draw(tri, triRect, img, image.Point{X: fr.X, Y: fr.Y}, draw.Over)
 				img = tri
 			}
 
 			if frame.Rotated {
-				rot := image.NewNRGBA(image.Rect(0, 0, img.Bounds().Dy(), img.Bounds().Dx()))
-				for x := img.Bounds().Min.Y; x < img.Bounds().Max.Y; x++ {
-					for y := img.Bounds().Max.X - 1; y >= img.Bounds().Min.X; y-- {
-						rot.Set(img.Bounds().Max.Y-x, y, img.At(y, x))
+				f.Width, f.Height = f.Height, f.Width
+				rot := image.NewNRGBA(image.Rect(0, 0, f.Width, f.Height))
+				for x := 0; x < f.Width; x++ {
+					for y := 0; y < f.Height; y++ {
+						rot.Set(x, y, img.At(y, f.Width-1-x)) // Important: Width -1 here
 					}
 				}
 				img = rot
-
-				f.Width, f.Height = f.Height, f.Width
 			}
 
 			draw.Draw(
 				result,
-				image.Rect(f.X, f.Y, f.X+f.Width, f.Y+f.Height),
+				image.Rect(f.X, f.Y, f.X+f.Width+1, f.Y+f.Height+1),
 				img,
 				image.Point{},
-				draw.Over,
+				draw.Src,
 			)
 		}
 
