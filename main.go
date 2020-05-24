@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -16,7 +17,7 @@ func main() {
 	var mode, file, imgInput, prefix string
 
 	flag.StringVar(&mode, "mode", "unpack", "Work mode, unpack or repack")
-	flag.StringVar(&file, "file", "", "Json file name without extension")
+	flag.StringVar(&file, "file", "", "Json file name")
 	flag.StringVar(&imgInput, "image", "", "Image file name, used as input in unpack mode or as output in repack mode")
 	flag.StringVar(&prefix, "prefix", "unpacked", "Prefix path of exported files")
 	flag.Parse()
@@ -33,12 +34,13 @@ func main() {
 		if imgInput == "" {
 			imgInput = desc.Meta.Image
 		}
+		imgInput = path.Dir(file) + "/" + imgInput
 
 		img := LoadImage(imgInput)
 
 		for name, frame := range desc.Frames {
 			if prefix != "" {
-				name = prefix + "/" + name
+				name = path.Dir(file) + "/" + prefix + "/" + name
 			}
 			f := frame.Frame
 

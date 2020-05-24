@@ -32,6 +32,9 @@ ShinyRepacker --mode unpack --file icon
 
 # repack
 ShinyRepacker --mode repack --file icon
+
+# batch unpack
+arr=(`ls -1 **/*.json`) && for i in "${arr[@]}";do ShinyRepacker --file "$i"; done
 ```
 
 ## License

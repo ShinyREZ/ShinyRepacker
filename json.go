@@ -47,7 +47,7 @@ type DescribeMeta struct {
 func LoadDescribeFile(name string) DescribeFile {
 	var result DescribeFile
 
-	data, err := ioutil.ReadFile(name + ".json")
+	data, err := ioutil.ReadFile(name)
 	if err != nil {
 		log.Panic(err)
 	}
