@@ -52,16 +52,17 @@ func main() {
 			draw.Draw(rec, recRect, img, image.Point{X: f.X, Y: f.Y}, draw.Over)
 
 			if frame.Rotated {
-				rot := image.NewNRGBA(image.Rect(0, 0, f.Height, f.Width))
-				for x := 0; x < f.Height; x++ {
-					for y := f.Width - 1; y >= 0; y-- {
-						rot.Set(x, f.Width-y, rec.At(y, x))
+				f.Width, f.Height = f.Height, f.Width
+				rot := image.NewNRGBA(image.Rect(0, 0, f.Width, f.Height))
+				for x := 0; x < f.Width; x++ {
+					for y := 0; y < f.Height; y++ {
+						rot.Set(x, y, rec.At(f.Height-1-y, x)) // Important: Height -1 here
 					}
 				}
 				rec = rot
 			}
 
-			var result image.Image
+			var result image.Image = rec
 			if frame.Trimmed {
 				dst := image.NewNRGBA(image.Rect(0, 0, frame.SourceSize.Width, frame.SourceSize.Height))
 				draw.Draw(
@@ -69,14 +70,12 @@ func main() {
 					image.Rect(
 						frame.SpriteSourceSize.X,
 						frame.SpriteSourceSize.Y,
-						frame.SpriteSourceSize.X+frame.SpriteSourceSize.Width,
-						frame.SpriteSourceSize.Y+frame.SpriteSourceSize.Height,
+						frame.SourceSize.Width,
+						frame.SourceSize.Height,
 					),
 					rec, image.Point{}, draw.Over,
 				)
 				result = dst
-			} else {
-				result = rec
 			}
 
 			// Save file
