@@ -16,7 +16,7 @@ func main() {
 	var mode, file string
 
 	flag.StringVar(&mode, "mode", "unpack", "Work mode of ShinyRepacker")
-	flag.StringVar(&file, "file", "parts_text", "File name without extension")
+	flag.StringVar(&file, "file", "icon", "File name without extension")
 	flag.Parse()
 
 	desc := LoadDescribeFile(file)
@@ -34,8 +34,7 @@ func main() {
 		}
 
 		for name, frame := range desc.Frames {
-			name = strings.ReplaceAll(name, "/", "_")
-
+			name = "unpacked/" + name
 			f := frame.Frame
 
 			// rotate: true means the width and height are exchanged
@@ -79,6 +78,12 @@ func main() {
 			// Save file
 			var buf bytes.Buffer
 			err := png.Encode(&buf, result)
+			if err != nil {
+				log.Panic(err)
+			}
+
+			folders := strings.Split(name, "/")
+			err = os.MkdirAll(strings.Join(folders[:len(folders)-1], "/"), 0777)
 			if err != nil {
 				log.Panic(err)
 			}
